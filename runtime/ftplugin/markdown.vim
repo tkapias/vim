@@ -1,7 +1,7 @@
 " Vim filetype plugin
 " Language:		Markdown
 " Maintainer:		Tim Pope <vimNOSPAM@tpope.org>
-" Last Change:		2021 Nov 10
+" Last Change:		2021 Nov 12
 
 if exists("b:did_ftplugin")
   finish
@@ -36,16 +36,16 @@ function! MarkdownFold() abort
     return ">1"
   endif
 
-  if (line =~ '^.\+$') && (nextline =~ '^-\+$') && s:NotCodeBlock(v:lnum + 1) && not b:markdown_frontmatter
+  if (line =~ '^.\+$') && (nextline =~ '^-\+$') && s:NotCodeBlock(v:lnum + 1) && !exists('b:markdown_frontmatter')
     return ">2"
   endif
 
-  if (v:lnum == 1) && (line == '+++' || line == '---')
+  if v:lnum == 1 && (line =~ '^[+-]\{3}$')
     let b:markdown_frontmatter = 1
     return ">1"
   endif
 
-  if (line == '+++' || line == '---') && b:markdown_frontmatter
+  if (line =~ '^[+-]\{3}$') && b:markdown_frontmatter
     unlet b:markdown_frontmatter
     return '<1'
   endif
@@ -54,7 +54,7 @@ function! MarkdownFold() abort
 endfunction
 
 function! s:HashIndent(lnum) abort
-  let hash_header = matchstr(getline(a:lnum), '^#\{1,6}')
+  let hash_header = matchstr(getline(a:lnum), '^#\{1,6}\|^[+-]\{3}$')
   if len(hash_header)
     return hash_header
   else
@@ -69,9 +69,14 @@ endfunction
 
 function! MarkdownFoldText() abort
   let hash_indent = s:HashIndent(v:foldstart)
-  let title = substitute(getline(v:foldstart), '^#\+\s*', '', '')
   let foldsize = (v:foldend - v:foldstart + 1)
   let linecount = '['.foldsize.' lines]'
+  if getline(v:foldstart) =~ '^[+-]\{3}$'
+    let currentfold = getline(2, v:foldend-1)
+    let title = substitute(getline(2+match(currentfold, '^\s\{,2}title[ =:]\{1,2}')), '^\s\{,2}title[ =:]\{1,2}', '', '')
+  else
+    let title = substitute(getline(v:foldstart), '^#\+\s*', '', '')
+  endif
   return hash_indent.' '.title.' '.linecount
 endfunction
 
