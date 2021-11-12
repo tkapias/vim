@@ -167,9 +167,13 @@ if main_syntax ==# 'markdown'
 endif
 
 unlet b:current_syntax
-syntax include @Yaml syntax/yaml.vim
 syntax include @Toml syntax/toml.vim
-syntax region yamlFrontmatter start=/\%^---$/ end=/^---$/ keepend contains=@Yaml
 syntax region tomlFrontmatter start=/\%^+++$/ end=/^+++$/ keepend contains=@Toml
+
+unlet b:current_syntax
+syntax include @Yaml syntax/yaml.vim
+syntax region yamlFrontmatter start=/\%^---$/ end=/^---$/ keepend contains=@Yaml
+
+let b:current_syntax = "markdown"
 
 " vim:set sw=2:
